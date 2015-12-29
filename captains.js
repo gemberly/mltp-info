@@ -347,7 +347,7 @@ if(document.URL.search(/:[0-9]{4}/) >= 0) {
                             'grabs', 'drops', 'hold', 'captures', 'prevent', 'returns',
                             'support', 'team', 'team captures', 'opponent captures',
                             'arrival', 'departure', 'bombtime', 'tagprotime', 'griptime',
-                            'speedtime'];
+                            'speedtime', 'powerups'];
         catstatsMLTP.gamehalfInfo = GM_getValue('gamehalfInfo');
         
         
@@ -560,6 +560,7 @@ if(document.URL.search(/:[0-9]{4}/) >= 0) {
                 columns['prevent']     = player['s-prevent'] || 0;
                 columns['returns']     = player['s-returns'] || 0;
                 columns['support']     = player['s-support'] || 0;
+                columns['powerups']    = player['s-powerups'] || 0;
                 columns['team']        = player.team || 0;
                 columns['team captures']     = player.team == 1 ? tagpro.score.r - Number(GM_getValue('initialScore').r): tagpro.score.b - Number(GM_getValue('initialScore').b);
                 columns['opponent captures'] =  player.team == 1 ? tagpro.score.b - Number(GM_getValue('initialScore').b) : tagpro.score.r - Number(GM_getValue('initialScore').r);
