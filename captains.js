@@ -3,68 +3,124 @@
 //-----------------------------------------------------------------------------//
 
 if( document.URL.search(/groups\/[a-zA-Z]{8}/) > 0 ) {
-	
-	//------------------//
-	//  SET UP DIALOGS  //
-	//------------------//
-	
-	// spectator dialog div
-	var specInputDiv = $('<div id=specInput style="cursor: default; background-color: #E4E4E4;">')[0];
-	document.body.appendChild(specInputDiv);
-	specInputDiv.hidden = true;
-	
-	// spectator title and buttons
+    
+    //------------------//
+    //  SET UP DIALOGS  //
+    //------------------//
+    
+    //// SPECTATOR DIALOG SETUP ////
+    var specInputDiv = $('<div id=specInput style="cursor: default; background-color: #E4E4E4;">')[0];
+    document.body.appendChild(specInputDiv);
+    specInputDiv.hidden = true;
+    
+    // spectator title and buttons
 
     var specTitle1 = $('<h2 id=specTitle1 style="margin-bottom: 10px;">It looks like you\'re spectating!</h2>')[0];
-	var specTitle2 = $('<txt id=specTitle2>Which team is yours?</txt>')[0];
+    var specTitle2 = $('<txt id=specTitle2>Which team is yours?</txt>')[0];
 
     var specRedButton = $('<input id=specRedButton type=button value="Red Team" style="margin-top: 20px; margin-right: 10px; margin-bottom: 10px;">')[0];
-	specRedButton.onclick = function() {
+    specRedButton.onclick = function() {
         $('#spectatorLabel').text('Spectating - Red Team');
         $('#spectatorLabel').css('color', 'red');
-		GM_setValue("specTeam", 'r');
-		$.unblockUI();
-	};
+        GM_setValue("specTeam", 'r');
+        $.unblockUI();
+    };
     
     var specBlueButton = $('<input id=specBlueButton type=button value="Blue Team">')[0];
-	specBlueButton.onclick = function() {
+    specBlueButton.onclick = function() {
         $('#spectatorLabel').text('Spectating - Blue Team');
         $('#spectatorLabel').css('color', 'blue');
-		GM_setValue("specTeam", 'b');
-		$.unblockUI();
-	};
-	
-	// build up spectator div
-	var y = $('#specInput');
-	y.append(specTitle1);
-	y.append('<p>', specTitle2);
-	y.append('<p>', specRedButton, specBlueButton);
-	    	
-	// set up main dialog div
-    var statsInputDiv = $('<div id=statsInput style="cursor: default; background-color=#E4E4E4;">')[0];
-	document.body.appendChild(statsInputDiv);
-	statsInputDiv.hidden = true;
-	
-	// set up titles and stuff
-    var sID_t1 = $('<h2 id=sID_t1>Input Game and Half Info</h2>')[0];    	
+        GM_setValue("specTeam", 'b');
+        $.unblockUI();
+    };
+    
+    // build up spectator div
+    var y = $('#specInput');
+    y.append(specTitle1);
+    y.append('<p>', specTitle2);
+    y.append('<p>', specRedButton, specBlueButton);
 
-	var gamehalfForm = $('<form id=gamehalfForm>');
+    //// END SPECTATOR DIALOG SETUP ////
+
+
+
+    //// TIMEOUT DIALOG SETUP ////
+    var timeoutDiv = $('<div id=timeoutInput style="cursor: default; background-color=#E4E4E4;">')[0];
+    document.body.appendChild(timeoutDiv);
+    timeoutDiv.hidden = true;
+
+    var timeout_txt1 = $("<txt>It looks like you're returning from a time out.</txt>")[0];
+    var timeout_txt2 = $("<txt>Set the scores so far from this half here:</txt>")[0];
+    var timeout_st1 = $('<txt>Your Team: </txt>')[0];
+    var timeout_yourTeam = $('<input id=timeout_yourTeam value=0 style="margin-top: 20px; margin-right: 20px; width: 20px">')[0];
+    var timeout_st2 = $('<txt>Other Team: </txt>')[0];
+    var timeout_otherTeam = $('<input id=timeout_otherTeam value=0 style="width: 20px;">')[0];
+    var timeout_ok = $('<input id=timeout_ok type=button value="Set Scores" style="margin-top: 20px">')[0];
+    timeout_ok.onclick = function() {
+        var a = isNaN(Number($('#timeout_yourTeam')[0].value));
+        var b = isNaN(Number($('#timeout_otherTeam')[0].value));
+        if( a || b) {
+            $('#timeout_yourTeam')[0].value = 0;
+            $('#timeout_otherTeam')[0].value = 0;
+            return;
+        }
+        GM_setValue('thisTeamTimeoutScore', Number($('#timeout_yourTeam')[0].value));
+        GM_setValue('otherTeamTimeoutScore', Number($('#timeout_otherTeam')[0].value));
+        $('#sID_yourTeam')[0].value = Number($('#timeout_yourTeam')[0].value);
+        $('#sID_otherTeam')[0].value = Number($('#timeout_otherTeam')[0].value);
+        $('#ok').click();
+        $('#sendStatsCheckbox')[0].checked = true;
+        $.unblockUI();
+    };
+
+    var timeout = $('#timeoutInput');
+    timeout.append(timeout_txt1);
+    timeout.append('<br>', timeout_txt2);
+    timeout.append('<p>', timeout_st1, timeout_yourTeam);
+    timeout.append(timeout_st2, timeout_otherTeam);
+    timeout.append('<p>', timeout_ok);
+
+
+    function showTimeoutDialog() {
+        var dialogWidth = 500;
+        var dialogLeft = $(window).width() / 2 - dialogWidth / 2;
+        $.blockUI({ message: $('#timeoutInput'), 
+                    css: { 
+                        width: dialogWidth+'px', 
+                        left: dialogLeft+'px' 
+                    } 
+        });
+    }
+
+    //// END TIMEOUT DIALOG SETUP ////
+            
+
+
+    //// MAIN DIALOG SETUP ////
+    var statsInputDiv = $('<div id=statsInput style="cursor: default; background-color=#E4E4E4;">')[0];
+    document.body.appendChild(statsInputDiv);
+    statsInputDiv.hidden = true;
+    
+    // set up titles and stuff
+    var sID_t1 = $('<h2 id=sID_t1>Input Game and Half Info</h2>')[0];       
+
+    var gamehalfForm = $('<form id=gamehalfForm>');
     var g1h1Radio = $('<input type=radio id=g1h1 name=gamehalf game=1 half=1></input><label for="g1h1"><i> Game 1 Half 1</i></label><p>');
     var g1h2Radio = $('<input type=radio id=g1h2 name=gamehalf game=1 half=2></input><label for="g1h2"><i> Game 1 Half 2</i></label><p>');
     var g2h1Radio = $('<input type=radio id=g2h1 name=gamehalf game=2 half=1></input><label for="g2h1"><i> Game 2 Half 1</i></label><p>');
     var g2h2Radio = $('<input type=radio id=g2h2 name=gamehalf game=2 half=2></input><label for="g2h2"><i> Game 2 Half 2</i></label><p>');
     g1h1Radio[0].checked = true;
     gamehalfForm.append(g1h1Radio, g1h2Radio, g2h1Radio, g2h2Radio);
-	
+    
     var sID_t2 = $('<h2 id=sID_t2 style="font-size: 14px; margin-top: 60px">If you are returning from a TIME OUT, input score information here.</h2>');
     var sID_t3 = $('<h2 id=sID_t3 style="font-size: 15px; color:red">Otherwise, leave this area alone!</h2>');
     var sID_st4 = $('<txt id=sID_st4>Your Team: </txt>')[0];
     var sID_yourTeam = $('<input id=sID_yourTeam value=0 style="margin-top: 20px; margin-right: 20px; width: 20px">')[0];
     var sID_st5 = $('<txt id=sID_st5>Other Team: </txt>')[0];
     var sID_otherTeam = $('<input id=sID_otherTeam value=0 style="width: 20px;">')[0];
-	
+    
     var sID_ok = $('<input id=ok type=button value=OK>')[0];
-	sID_ok.onclick = function() {
+    sID_ok.onclick = function() {
         var game, half;
         var radios = $('#gamehalfForm').children('input');
         for(var i = 0; i < radios.length; i++) {
@@ -75,18 +131,19 @@ if( document.URL.search(/groups\/[a-zA-Z]{8}/) > 0 ) {
         }
         if(!game || !half) return;
 
-		var a = isNaN(Number($('#sID_yourTeam')[0].value));
-		var b = isNaN(Number($('#sID_otherTeam')[0].value));
-		if( a | b) {
-			$('#sID_yourTeam')[0].value = 0;
-			$('#sID_otherTeam')[0].value = 0;
-			return;
-		}
+        var a = isNaN(Number($('#sID_yourTeam')[0].value));
+        var b = isNaN(Number($('#sID_otherTeam')[0].value));
+        if( a || b) {
+            $('#sID_yourTeam')[0].value = 0;
+            $('#sID_otherTeam')[0].value = 0;
+            return;
+        }
         GM_setValue('gamehalfInfo', {
             game: Number(game),
             half: Number(half),
             increment: false,
-            lastUpdate: Date.now()
+            lastUpdate: Date.now(),
+            timeout: false
         });
         GM_setValue('thisTeamTimeoutScore', Number($('#sID_yourTeam')[0].value));
         GM_setValue('otherTeamTimeoutScore', Number($('#sID_otherTeam')[0].value));
@@ -100,42 +157,46 @@ if( document.URL.search(/groups\/[a-zA-Z]{8}/) > 0 ) {
         $('#sendStatsLabel').text('Game ' + game + ' Half ' + half);
         $('#sendStatsLabel').css('color', '#00FF00');
         $('#sendStatsLabel').css('cursor', 'pointer');
-		
-		$.unblockUI();
-		setTimeout(function() { 
+        
+        $.unblockUI();
+        setTimeout(function() { 
             GM_setValue("post_tagpro_stats_status","true");
         }, 500);
-	};
-		
-	var sID_cancel = $('<input id=cancel type=button value=Cancel style="margin-top: 30px; margin-right: 15px; margin-bottom: 15px">')[0];
-	sID_cancel.onclick = function() {
-		clearDialog();
+    };
+        
+    var sID_cancel = $('<input id=cancel type=button value=Cancel style="margin-top: 30px; margin-right: 15px; margin-bottom: 15px">')[0];
+    sID_cancel.onclick = function() {
+        clearDialog();
         GM_setValue("post_tagpro_stats_status","false");
-		$.unblockUI();
-	};
-	
-	clearDialog = function() {
+        $.unblockUI();
+    };
+    
+    clearDialog = function() {
         $('#sendStatsLabel').text('Send Stats to Server');
         $('#sendStatsLabel').css('color', 'white');
         $('#sendStatsLabel').css('cursor', 'default');
-		$('#sID_yourTeam')[0].value = 0;
-		$('#sID_otherTeam')[0].value = 0;
-		$('#sendStatsCheckbox')[0].checked = false;
-	};
-	
-	// add titles and stuff to main dialog div
-	var t = $('#statsInput');
-	t.append(sID_t1);
-	t.append(gamehalfForm);
-	t.append(sID_t2);
+        $('#sID_yourTeam')[0].value = 0;
+        $('#sID_otherTeam')[0].value = 0;
+        $('#sendStatsCheckbox')[0].checked = false;
+    };
+    
+    // add titles and stuff to main dialog div
+    var t = $('#statsInput');
+    t.append(sID_t1);
+    t.append(gamehalfForm);
+    t.append(sID_t2);
     t.append(sID_t3);
-	t.append(sID_st4, sID_yourTeam);
-	t.append(sID_st5, sID_otherTeam);
-	t.append('<p>', sID_cancel, sID_ok);
-	
-	//------------------------//
-	//  END OF DIALOGS SETUP  //
-	//------------------------//
+    t.append(sID_st4, sID_yourTeam);
+    t.append(sID_st5, sID_otherTeam);
+    t.append('<p>', sID_cancel, sID_ok);
+
+    //// END MAIN DIALOG SETUP ////
+    
+    //------------------------//
+    //  END OF DIALOGS SETUP  //
+    //------------------------//
+
+
 
     // This function handles settings each time the group page is visited
     setSettings = function() {
@@ -179,9 +240,16 @@ if( document.URL.search(/groups\/[a-zA-Z]{8}/) > 0 ) {
                         return;
                 }
             }
+
+            console.log(gamehalfInfo.timeout);
             $('#g' + newGame + 'h' + newHalf)[0].checked = true;
-            $('#ok').click();
-            $('#sendStatsCheckbox')[0].checked = true;
+            if(gamehalfInfo.timeout) {
+                // open modal directing them to set score in event of a timeout
+                showTimeoutDialog();
+            } else {
+                $('#ok').click();
+                $('#sendStatsCheckbox')[0].checked = true;
+            }
         }
     };
     
@@ -211,7 +279,7 @@ if( document.URL.search(/groups\/[a-zA-Z]{8}/) > 0 ) {
     
     
     // If it is Sunday night (5:00 PM or later), make the checkbox label wiggle in the group page as a reminder
-    if( new Date().getDay() == 0 & new Date().getHours() >= 17 ) {
+    if( new Date().getDay() == 0 && new Date().getHours() >= 17 ) {
         $('#sendStatsLabel').ClassyWiggle();
     }
     
@@ -219,18 +287,18 @@ if( document.URL.search(/groups\/[a-zA-Z]{8}/) > 0 ) {
     //   run timeout prompt function
     promptFunction = function() {
         if( $('#sendStatsCheckbox')[0].checked ) { // if we just checked the box
-			var dialogWidth = 600;
-	    	var dialogLeft = $(window).width() / 2 - dialogWidth / 2;
-			$.blockUI({ message: $('#statsInput'), 
+            var dialogWidth = 600;
+            var dialogLeft = $(window).width() / 2 - dialogWidth / 2;
+            $.blockUI({ message: $('#statsInput'), 
                         css: { 
                                 width: dialogWidth+'px', 
                                 left: dialogLeft+'px' 
                              } 
                       });
-		} else {
-			GM_setValue("post_tagpro_stats_status","false");
-			clearDialog();
-		}
+        } else {
+            GM_setValue("post_tagpro_stats_status","false");
+            clearDialog();
+        }
     };
     
 
@@ -254,8 +322,8 @@ if( document.URL.search(/groups\/[a-zA-Z]{8}/) > 0 ) {
                 
             spectating = true;
             var dialogWidth2 = 400;
-	    	var dialogLeft2 = $(window).width() / 2 - dialogWidth2 / 2;
-			$.blockUI({ message: $('#specInput'), css: { width: dialogWidth2+'px', left: dialogLeft2+'px' } });
+            var dialogLeft2 = $(window).width() / 2 - dialogWidth2 / 2;
+            $.blockUI({ message: $('#specInput'), css: { width: dialogWidth2+'px', left: dialogLeft2+'px' } });
             swapInterval = setInterval(checkSwapped, 100);
             
         } else {
@@ -345,9 +413,9 @@ if(document.URL.search(/:[0-9]{4}/) >= 0) {
         catstatsMLTP.score = {redTeam: 0, blueTeam: 0};
         catstatsMLTP.columns = ['name', 'plusminus', 'minutes', 'score', 'tags', 'pops',
                             'grabs', 'drops', 'hold', 'captures', 'prevent', 'returns',
-                            'support', 'team', 'team captures', 'opponent captures',
+                            'support', 'team', 'powerups', 'team captures', 'opponent captures',
                             'arrival', 'departure', 'bombtime', 'tagprotime', 'griptime',
-                            'speedtime', 'powerups'];
+                            'speedtime'];
         catstatsMLTP.gamehalfInfo = GM_getValue('gamehalfInfo');
         
         
@@ -412,9 +480,9 @@ if(document.URL.search(/:[0-9]{4}/) >= 0) {
         };
         
         /**
-	 * Update local player stats
-	 * @param {Object} data The 'p' update data
-	 */
+     * Update local player stats
+     * @param {Object} data The 'p' update data
+     */
         catstatsMLTP.onPlayerUpdate = function onPlayerUpdate(data) {
             // Sometimes data is in .u
             data = data.u || data;
@@ -428,33 +496,33 @@ if(document.URL.search(/:[0-9]{4}/) >= 0) {
                 var player = _this.players[playerUpdate.id];
                 
                 if (!player) { // this player id is not in the local player database
-                	
-                	// check if a player with the same name is already in the database
-                	// if so, delete the old one but save the old one's arrival time
-                	// then, create new player and assign that player the old player's arrival time
-                	// this will work well for refreshes, but will inflate 'minutes' if a player leaves the game
-                	// and then comes back later
-                	var refreshed = false;
-                	Object.keys(_this.players).forEach(function(key){
-                		if( playerUpdate.name === _this.players[key].name ) {
-                			console.log(playerUpdate.name + ' refreshed!');
-                			refreshed = true;
-                			
-                			player = _this.createPlayer(playerUpdate.id);
-                			player.arrival    = _this.players[key].arrival;
-                			player.bombtime   = _this.players[key].bombtime;
-                			player.tagprotime = _this.players[key].tagprotime;
-                			player.griptime   = _this.players[key].griptime;
-                			player.speedtime  = _this.players[key].speedtime;
-                			player.diftotal   = _this.players[key].diftotal;
-                			delete(_this.players[key]);
-                    		_this.updatePlayer(player, tagpro.players[playerUpdate.id]);
-                		}
-                	});
-                		
-                    if(!refreshed) {		
-                    	player = _this.createPlayer(playerUpdate.id);
-                    	_this.updatePlayer(player, tagpro.players[playerUpdate.id]);
+                    
+                    // check if a player with the same name is already in the database
+                    // if so, delete the old one but save the old one's arrival time
+                    // then, create new player and assign that player the old player's arrival time
+                    // this will work well for refreshes, but will inflate 'minutes' if a player leaves the game
+                    // and then comes back later
+                    var refreshed = false;
+                    Object.keys(_this.players).forEach(function(key){
+                        if( playerUpdate.name === _this.players[key].name ) {
+                            console.log(playerUpdate.name + ' refreshed!');
+                            refreshed = true;
+                            
+                            player = _this.createPlayer(playerUpdate.id);
+                            player.arrival    = _this.players[key].arrival;
+                            player.bombtime   = _this.players[key].bombtime;
+                            player.tagprotime = _this.players[key].tagprotime;
+                            player.griptime   = _this.players[key].griptime;
+                            player.speedtime  = _this.players[key].speedtime;
+                            player.diftotal   = _this.players[key].diftotal;
+                            delete(_this.players[key]);
+                            _this.updatePlayer(player, tagpro.players[playerUpdate.id]);
+                        }
+                    });
+                        
+                    if(!refreshed) {        
+                        player = _this.createPlayer(playerUpdate.id);
+                        _this.updatePlayer(player, tagpro.players[playerUpdate.id]);
                     }
                 } else { //player id is already in local player database
                     _this.updatePlayer(player, playerUpdate);
@@ -465,9 +533,9 @@ if(document.URL.search(/:[0-9]{4}/) >= 0) {
         
         
         /**
-	* Update the team score
-	* @param {Object} data - The 'score' update data
-	*/
+    * Update the team score
+    * @param {Object} data - The 'score' update data
+    */
         catstatsMLTP.onScoreUpdate = function onScoreUpdate(data) {
             this.score.redTeam = data.r - Number(GM_getValue('initialScore').r);
             this.score.blueTeam = data.b - Number(GM_getValue('initialScore').b);
@@ -475,9 +543,9 @@ if(document.URL.search(/:[0-9]{4}/) >= 0) {
         
         
         /**
-	 * Handle players who leave early
-	 * @param {Number} playerId - The id of the player leaving
-	 */
+     * Handle players who leave early
+     * @param {Number} playerId - The id of the player leaving
+     */
         catstatsMLTP.onPlayerLeftUpdate = function onPlayerLeftUpdate(playerId) {
             // Player leaves mid-game
             if(tagpro.state == 1) {
@@ -494,15 +562,11 @@ if(document.URL.search(/:[0-9]{4}/) >= 0) {
         
         
         /**
-	 * Track the amount of time a player is in the game
-	 * @param {Object} data - The time object
-	 */
+     * Track the amount of time a player is in the game
+     * @param {Object} data - The time object
+     */
         catstatsMLTP.onTimeUpdate = function onTimeUpdate(data) {
             if(tagpro.state == 2) return; //Probably unneeded
-            if(tagpro.state !== 3) {
-                catstatsMLTP.gamehalfInfo.increment = true;
-                GM_setValue('gamehalfInfo', catstatsMLTP.gamehalfInfo);
-            }
             var playerIds = Object.keys(this.players);
             var _this = this;
             playerIds.forEach(function(id) {
@@ -512,11 +576,27 @@ if(document.URL.search(/:[0-9]{4}/) >= 0) {
         
         
         /**
-	 * Called when the game has ended or
-	 * the client is leaving the page
-	 */
+     * Called when the game has ended or
+     * the client is leaving the page
+     */
         catstatsMLTP.onEnd = function onEnd() {
+            // if the game hasn't started yet, don't do anything
             if(tagpro.state === 3) return;
+
+            // if the game isn't over, then don't increment and set timeout flag to 'true'
+            if(tagpro.state === 1) {
+                catstatsMLTP.gamehalfInfo.increment = false;
+                catstatsMLTP.gamehalfInfo.timeout = true;
+                GM_setValue('gamehalfInfo', catstatsMLTP.gamehalfInfo);
+            }
+
+            // if the game is over, then increment and set timeout flag to 'false'
+            if(tagpro.state === 2) {
+                catstatsMLTP.gamehalfInfo.increment = true;
+                catstatsMLTP.gamehalfInfo.timeout = false;
+                GM_setValue('gamehalfInfo', catstatsMLTP.gamehalfInfo);
+            }
+
             if(this.wantsStats && !this.downloaded) {
                 this.exportStats(false);
                 this.exportStats(true);
@@ -524,8 +604,8 @@ if(document.URL.search(/:[0-9]{4}/) >= 0) {
         };
         
         /**
-	 * Prepare the local player record for export
-	 */
+     * Prepare the local player record for export
+     */
         catstatsMLTP.prepareStats = function prepareStats(final) {
             var now = Date.now();
             var _this = this;
@@ -560,8 +640,8 @@ if(document.URL.search(/:[0-9]{4}/) >= 0) {
                 columns['prevent']     = player['s-prevent'] || 0;
                 columns['returns']     = player['s-returns'] || 0;
                 columns['support']     = player['s-support'] || 0;
-                columns['powerups']    = player['s-powerups'] || 0;
                 columns['team']        = player.team || 0;
+                columns['powerups']    = player['s-powerups'] || 0;
                 columns['team captures']     = player.team == 1 ? tagpro.score.r - Number(GM_getValue('initialScore').r): tagpro.score.b - Number(GM_getValue('initialScore').b);
                 columns['opponent captures'] =  player.team == 1 ? tagpro.score.b - Number(GM_getValue('initialScore').b) : tagpro.score.r - Number(GM_getValue('initialScore').r);
                 columns['arrival']     = player['arrival'] || 0;
@@ -599,23 +679,23 @@ if(document.URL.search(/:[0-9]{4}/) >= 0) {
             
             // add map, server, game, half, key, and score objects to stats array
             var statsObj = {
-                map: mapName,
-                server: serverName,
-                game: catstatsMLTP.gamehalfInfo.game,
-                half: catstatsMLTP.gamehalfInfo.half,
-                userkey: KEY,
-                score: {thisTeamScore: thisTeamScore, otherTeamScore: otherTeamScore},
-                state: tagpro.state,
-                stats: stats
-            };
-            
-            return statsObj;
+                 map: mapName,
+                 server: serverName,
+                 game: catstatsMLTP.gamehalfInfo.game,
+                 half: catstatsMLTP.gamehalfInfo.half,
+                 userkey: KEY,
+                 score: {thisTeamScore: thisTeamScore, otherTeamScore: otherTeamScore},
+                 state: tagpro.state,
+                 stats: stats
+             };
+             
+             return statsObj;
         };
         
         
         /**
-	 * Called when a cap occurs. It exports data as an update, not as a final stats export
-	 */
+     * Called when a cap occurs. It exports data as an update, not as a final stats export
+     */
         catstatsMLTP.updateExport = function updateExport() {
             if ( this.wantsStats ) {
                 this.exportStats(false);
@@ -623,9 +703,9 @@ if(document.URL.search(/:[0-9]{4}/) >= 0) {
         };
         
         /**
-	 * Create a local player record
-	 * @param {Number} id - the id of the player
-	 */
+     * Create a local player record
+     * @param {Number} id - the id of the player
+     */
         catstatsMLTP.createPlayer = function createPlayer(id) {
             var player = this.players[id] = {};
             player['arrival']     = tagpro.gameEndsAt - Date.now();
@@ -644,10 +724,10 @@ if(document.URL.search(/:[0-9]{4}/) >= 0) {
         
         
         /**
-	 * Update the local player record with new data
-	 * @param {Object} player - reference to local player record
-	 * @param {Object} playerUpdate - new player data
-	 */
+     * Update the local player record with new data
+     * @param {Object} player - reference to local player record
+     * @param {Object} playerUpdate - new player data
+     */
         catstatsMLTP.updatePlayer = function updatePlayer(player, playerUpdate) {
             var attrs = Object.keys(playerUpdate);
             var _this = this;
@@ -668,11 +748,11 @@ if(document.URL.search(/:[0-9]{4}/) >= 0) {
         
         
         /**
-	 * Update timers on the local player record
-	 * @param {Object} player - reference to local player record
-	 * @param {Object} timerName - name of the timer to update
-	 * @param {Object} timerValue - value of the timer to update
-	 */
+     * Update timers on the local player record
+     * @param {Object} player - reference to local player record
+     * @param {Object} timerName - name of the timer to update
+     * @param {Object} timerValue - value of the timer to update
+     */
         catstatsMLTP.updatePlayerTimer = function updatePlayerTimer(player, timerName, timerValue) {
             // the player has the powerup and
             // we aren't tracking the time yet
@@ -691,10 +771,10 @@ if(document.URL.search(/:[0-9]{4}/) >= 0) {
         }
         
         /**
-	 * When a player leaves or the game is over perform some cleanup
-	 * @param {Object} player - reference to local player record
-	 * @param {Number} [now] - unix timestamp representing current time
-	 */
+     * When a player leaves or the game is over perform some cleanup
+     * @param {Object} player - reference to local player record
+     * @param {Number} [now] - unix timestamp representing current time
+     */
         catstatsMLTP.updatePlayerAfterDeparture = function updatePlayerAfterDeparture (player, now, final, playerLeft) {
             var now = now || Date.now();
             
@@ -730,17 +810,18 @@ if(document.URL.search(/:[0-9]{4}/) >= 0) {
         }
         
         /**
-	 * Create the document and trigger a download
-	 */
+     * Create the document and trigger a download
+     */
         catstatsMLTP.exportStats = function exportStats(final) {
-            var data = this.prepareStats(final);
+            var data = this.prepareStats(final);           
+            console.log(JSON.stringify(data));
             if(sendStats){
                 $.ajax({url: final ? FINALURL : UPDATEURL, method: 'POST', data: data })
-                    .done(function (res) {
-                        console.log(res);
-                    }).fail(function (err) {
-                        console.log(err);
-                    });
+                     .done(function (res) {
+                         console.log(res);
+                     }).fail(function (err) {
+                         console.log(err);
+                     });
             }
             if(final) {
                 this.downloaded = true;
@@ -756,5 +837,4 @@ if(document.URL.search(/:[0-9]{4}/) >= 0) {
         return catstatsMLTP;
     };
     window.catstatsMLTP({});
-    console.log("y");
 }
