@@ -279,8 +279,12 @@ if( document.URL.search(/groups\/[a-zA-Z]{8}/) > 0 ) {
     
     
     // If it is Sunday night (5:00 PM or later), make the checkbox label wiggle in the group page as a reminder
-    if( new Date().getDay() == 0 && new Date().getHours() >= 17 ) {
+    var isSundayNight = new Date().getDay() == 0 && new Date().getHours() >= 17;
+    var isMondayNight = new Date().getDay() == 1 && new Date().getHours() >= 17;
+    if( isSundayNight || isMondayNight ) {
         $('#sendStatsLabel').ClassyWiggle();
+        // automatically delay powerups if group leader
+        $("input[name='buffDelay']").click();
     }
     
     // If the box is checked, make a prompt to get game and half info, then 
